@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const args = process.argv.slice(2);
 
 const commands = {
@@ -18,19 +19,36 @@ const commands = {
     };
     searchFiles(dir);
   },
+  http: (method, url, data) => {
+    const options = { method: method.toUpperCase() };
+    const req = https.request(url, options, res => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(body);
+          console.log(JSON.stringify(json, null, 2));
+        } catch (e) {
+          console.log(body);
+        }
+      });
+    });
+    req.on('error', e => console.error(e));
+    if (data) {
+      req.write(data);
+    }
+    req.end();
+  },
   count: (filePath) => {
-    const content = fs.readFileSync(filePath, 'utf8');
-    const lines = content.split('\n').length;
-    const words = content.split(/\s+/).filter(Boolean).length;
-    const chars = content.length;
-    console.log(`Lines: ${lines}, Words: ${words}, Chars: ${chars}`);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    console.log(content.split(/\s+/).length);
   }
 };
 
 const command = args[0];
-const params = args.slice(1);
+const commandArgs = args.slice(1);
 if (commands[command]) {
-  commands[command](...params);
+  commands[command](...commandArgs);
 } else {
-  console.log('Unknown command');
+  console.log('Command not found');
 }
