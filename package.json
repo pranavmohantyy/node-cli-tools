@@ -1,0 +1,11 @@
+{
+  "name": "node-cli-tools",
+  "version": "1.0.0",
+  "description": "Collection of useful Node.js CLI utilities",
+  "bin": {
+    "cli": "bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js"
+  }
+}
