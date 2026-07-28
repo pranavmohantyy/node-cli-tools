@@ -17,14 +17,20 @@ const commands = {
       });
     };
     searchFiles(dir);
+  },
+  count: (filePath) => {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n').length;
+    const words = content.split(/\s+/).filter(Boolean).length;
+    const chars = content.length;
+    console.log(`Lines: ${lines}, Words: ${words}, Chars: ${chars}`);
   }
 };
 
 const command = args[0];
-if (command === 'find' && args[1] && args[2]) {
-  commands.find(args[1], args[2]);
-} else if (commands[command]) {
-  commands[command]();
+const params = args.slice(1);
+if (commands[command]) {
+  commands[command](...params);
 } else {
   console.log('Unknown command');
 }
