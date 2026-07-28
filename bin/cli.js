@@ -22,21 +22,26 @@ const commands = {
     };
     searchFiles(dir);
   },
-  env: (varName) => {
-    if (varName) {
-      console.log(process.env[varName]);
-    } else {
-      Object.entries(process.env).forEach(([key, value]) => {
-        console.log(`${key}=${value}`);
+  rename: (pattern, replacement, dir) => {
+    const renameFiles = (dir) => {
+      fs.readdirSync(dir).forEach(file => {
+        const filePath = path.join(dir, file);
+        if (fs.statSync(filePath).isDirectory()) {
+          renameFiles(filePath);
+        } else if (file.includes(pattern)) {
+          const newFileName = file.replace(new RegExp(pattern, 'g'), replacement);
+          console.log(`Renaming: ${filePath} to ${path.join(dir, newFileName)}`);
+          // Uncomment the line below to actually rename the files
+          // fs.renameSync(filePath, path.join(dir, newFileName));
+        }
       });
-    }
+    };
+    renameFiles(dir);
   }
 };
 
-const command = args[0];
-const params = args.slice(1);
-if (commands[command]) {
-  commands[command](...params);
+if (args.length > 0 && commands[args[0]]) {
+  commands[args[0]](...args.slice(1));
 } else {
   console.log('Command not found');
 }
