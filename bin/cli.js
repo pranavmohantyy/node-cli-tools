@@ -19,29 +19,10 @@ const commands = {
     };
     searchFiles(dir);
   },
-  http: (method, url, data) => {
-    const options = { method: method.toUpperCase() };
-    const req = https.request(url, options, res => {
-      let body = '';
-      res.on('data', chunk => body += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(body);
-          console.log(JSON.stringify(json, null, 2));
-        } catch (e) {
-          console.log(body);
-        }
-      });
-    });
-    req.on('error', e => console.error(e));
-    if (data) {
-      req.write(data);
-    }
-    req.end();
-  },
-  count: (filePath) => {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    console.log(content.split(/\s+/).length);
+  json: (filePath, query) => {
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const result = query.split('.').reduce((o, k) => (o || {})[k], data);
+    console.log(result);
   }
 };
 
