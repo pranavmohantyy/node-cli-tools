@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const args = process.argv.slice(2);
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const commands = {
   greet: () => console.log('Hello!'),
@@ -19,17 +22,21 @@ const commands = {
     };
     searchFiles(dir);
   },
-  json: (filePath, query) => {
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const result = query.split('.').reduce((o, k) => (o || {})[k], data);
-    console.log(result);
+  env: (varName) => {
+    if (varName) {
+      console.log(process.env[varName]);
+    } else {
+      Object.entries(process.env).forEach(([key, value]) => {
+        console.log(`${key}=${value}`);
+      });
+    }
   }
 };
 
 const command = args[0];
-const commandArgs = args.slice(1);
+const params = args.slice(1);
 if (commands[command]) {
-  commands[command](...commandArgs);
+  commands[command](...params);
 } else {
   console.log('Command not found');
 }
