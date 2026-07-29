@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { exec } = require('child_process');
 const args = process.argv.slice(2);
 const dotenv = require('dotenv');
 
@@ -22,20 +23,22 @@ const commands = {
     };
     searchFiles(dir);
   },
-  serve: () => {
-    const server = https.createServer((req, res) => {
-      const filePath = path.join(process.cwd(), req.url === '/' ? 'index.html' : req.url);
-      fs.readFile(filePath, (err, data) => {
-        if (err) {
-          res.writeHead(404);
-          res.end('404 Not Found');
-          return;
-        }
-        res.writeHead(200);
-        res.end(data);
-      });
+  watch: (target, command) => {
+    fs.watch(target, (eventType, filename) => {
+      if (filename) {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error executing command: ${error.message}`);
+            return;
+          }
+          if (stderr) {
+            console.error(`Error: ${stderr}`);
+            return;
+          }
+          console.log(`Output: ${stdout}`);
+        });
+      }
     });
-    server.listen(3000, () => console.log('Server running at https://localhost:3000'));
   }
 };
 
@@ -44,5 +47,5 @@ const params = args.slice(1);
 if (commands[command]) {
   commands[command](...params);
 } else {
-  console.log('Command not found.');
+  console.log('Command not recognized.');
 }
