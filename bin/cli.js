@@ -22,26 +22,27 @@ const commands = {
     };
     searchFiles(dir);
   },
-  rename: (pattern, replacement, dir) => {
-    const renameFiles = (dir) => {
-      fs.readdirSync(dir).forEach(file => {
-        const filePath = path.join(dir, file);
-        if (fs.statSync(filePath).isDirectory()) {
-          renameFiles(filePath);
-        } else if (file.includes(pattern)) {
-          const newFileName = file.replace(new RegExp(pattern, 'g'), replacement);
-          console.log(`Renaming: ${filePath} to ${path.join(dir, newFileName)}`);
-          // Uncomment the line below to actually rename the files
-          // fs.renameSync(filePath, path.join(dir, newFileName));
+  serve: () => {
+    const server = https.createServer((req, res) => {
+      const filePath = path.join(process.cwd(), req.url === '/' ? 'index.html' : req.url);
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          res.writeHead(404);
+          res.end('404 Not Found');
+          return;
         }
+        res.writeHead(200);
+        res.end(data);
       });
-    };
-    renameFiles(dir);
+    });
+    server.listen(3000, () => console.log('Server running at https://localhost:3000'));
   }
 };
 
-if (args.length > 0 && commands[args[0]]) {
-  commands[args[0]](...args.slice(1));
+const command = args[0];
+const params = args.slice(1);
+if (commands[command]) {
+  commands[command](...params);
 } else {
-  console.log('Command not found');
+  console.log('Command not found.');
 }
