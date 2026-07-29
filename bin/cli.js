@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const https = require('https');
 const { exec } = require('child_process');
 const args = process.argv.slice(2);
@@ -23,29 +24,26 @@ const commands = {
     };
     searchFiles(dir);
   },
-  watch: (target, command) => {
-    fs.watch(target, (eventType, filename) => {
-      if (filename) {
-        exec(command, (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error executing command: ${error.message}`);
-            return;
-          }
-          if (stderr) {
-            console.error(`Error: ${stderr}`);
-            return;
-          }
-          console.log(`Output: ${stdout}`);
-        });
-      }
-    });
+  hash: (filePath) => {
+    const algorithm = ['md5', 'sha1', 'sha256'];
+    const hashes = {};
+    const computeHash = (algo) => {
+      const hash = crypto.createHash(algo);
+      const input = fs.existsSync(filePath) ? fs.createReadStream(filePath) : process.stdin;
+      input.on('data', (chunk) => hash.update(chunk));
+      input.on('end', () => {
+        hashes[algo] = hash.digest('hex');
+        if (Object.keys(hashes).length === algorithm.length) {
+          console.log(hashes);
+        }
+      });
+    };
+    algorithm.forEach(computeHash);
   }
 };
 
-const command = args[0];
-const params = args.slice(1);
-if (commands[command]) {
-  commands[command](...params);
+if (args.length > 0 && commands[args[0]]) {
+  commands[args[0]](...args.slice(1));
 } else {
-  console.log('Command not recognized.');
+  console.log('Unknown command.');
 }
